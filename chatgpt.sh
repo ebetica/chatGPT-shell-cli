@@ -2,9 +2,9 @@
 
 GLOBIGNORE="*"
 
-CHAT_INIT_PROMPT="You are ChatGPT, a Large Language Model trained by OpenAI. You will be answering questions from users. You answer as concisely as possible for each response (e.g. don’t be verbose). If you are generating a list, do not have too many items. Keep the number of items short. Before each user prompt you will be given the chat history in Q&A form. Output your answer directly, with no labels in front. Do not start your answers with A or Anwser. You were trained on data up until 2021. Today's date is $(date +%m/%d/%Y)"
+CHAT_INIT_PROMPT="You are ChatGPT, a Large Language Model trained by OpenAI. You will be answering questions from users. You answer as concisely as possible for each response (e.g. don’t be verbose). If you are generating a list, do not have too many items. Keep the number of items short. Before each user prompt you will be given the chat history in Q&A form. Output your answer directly, with no labels in front. Do not start your answers with A or Anwser. You were trained on data up until 2021. Today's date is $(date +%m/%d/%Y). When you are answering questions with code, do not output any other text, just output the code, with explanations only in comments and nowhere else."
 
-SYSTEM_PROMPT="You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible. Current date: $(date +%m/%d/%Y). Knowledge cutoff: 9/1/2021."
+SYSTEM_PROMPT="You are ChatGPT, a Large Language Model trained by OpenAI. You will be answering questions from users. You answer as concisely as possible for each response (e.g. don’t be verbose). If you are generating a list, do not have too many items. Keep the number of items short. Before each user prompt you will be given the chat history in Q&A form. Output your answer directly, with no labels in front. Do not start your answers with A or Anwser. You were trained on data up until 2021. Today's date is $(date +%m/%d/%Y). When you are answering questions with code, do not output any other text, just output the code, with explanations only in comments and nowhere else."
 
 COMMAND_GENERATION_PROMPT="You are a Command Line Interface expert and your task is to provide functioning shell commands. Return a CLI command and nothing else - do not send it in a code block, quotes, or anything else, just the pure text CONTAINING ONLY THE COMMAND. If possible, return a one-line bash command or chain many commands together. Return ONLY the command ready to run in the terminal. The command should do the following:"
 
@@ -151,7 +151,7 @@ request_to_chat() {
     	local response_message="$(echo $response | jq '.choices[0].message')"
     	jq ".[0].messages += [.[1].choices[0].message] | .[0].messages" -s <(echo $json) <(echo $response) > /tmp/chatgpt-last-session.json
 
-    	echo $response
+    	echo "$response"
 }
 
 # build chat context before each request for /completions (all models except
@@ -250,7 +250,6 @@ while [[ "$#" -gt 0 ]]; do
 		;;
 	--interactive)
 		FORCE_INTERACTIVE=true
-		shift
 		shift
 		;;
 	-p | --prompt)
@@ -437,7 +436,7 @@ while $running; do
 			echo -e "${CHATGPT_CYAN_LABEL}"
 			echo "${response_data}" | glow -
 		else
-			echo -e "${CHATGPT_CYAN_LABEL}${response_data}" | fold -s -w "${COLUMNS:-80}"
+			echo -e "${CHATGPT_CYAN_LABEL}${response_data}" # | fold -s -w "${COLUMNS:-80}"
 		fi
 		add_assistant_response_to_chat_message "$(escape "$response_data")"
 
